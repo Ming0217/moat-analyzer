@@ -25,13 +25,13 @@ export function Navbar() {
             {user && (
               <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
                 <Link to="/methodology">
-                  <Compass className="h-4 w-4" />
+                  <Compass className="h-5 w-5" />
                   <span className="hidden sm:inline ml-1.5">Methodology</span>
                 </Link>
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme" className="text-muted-foreground hover:text-foreground">
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
             {user && (
               <Button
