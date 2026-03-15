@@ -13,7 +13,7 @@ export function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   return (
-    <header className="border-b bg-background relative">
+    <header className="border-b bg-background relative" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 font-semibold text-foreground">
