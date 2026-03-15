@@ -1,9 +1,10 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from app.dependencies import get_current_user_id, require_write, require_admin
 from app.services.supabase_client import get_client
 from app.services.pdf_parser import parse_and_store_metrics
+from app.schemas import ReportOut, ReportProcessingOut
 
 router = APIRouter()
 
@@ -21,6 +22,7 @@ class ReportNotify(BaseModel):
 async def register_report(
     company_id: str,
     payload: ReportNotify,
+    background_tasks: BackgroundTasks,
     user_id: str = Depends(require_write),
 ):
     """
@@ -64,8 +66,9 @@ async def register_report(
 
     report_id = report.data[0]["id"]
 
-    # Trigger parsing (runs inline for now; move to background task / queue later)
-    await parse_and_store_metrics(
+    # Trigger parsing in the background so the request returns immediately
+    background_tasks.add_task(
+        parse_and_store_metrics,
         report_id=report_id,
         company_id=company_id,
         storage_path=payload.storage_path,
@@ -73,10 +76,10 @@ async def register_report(
         fiscal_year=payload.fiscal_year,
     )
 
-    return {"report_id": report_id, "status": "processing"}
+    return ReportProcessingOut(report_id=report_id, status="processing")
 
 
-@router.get("/companies/{company_id}/reports")
+@router.get("/companies/{company_id}/reports", response_model=list[ReportOut])
 async def list_reports(
     company_id: str,
     user_id: str = Depends(get_current_user_id),
@@ -123,7 +126,7 @@ async def reparse_report(
         report_type=r["report_type"],
         fiscal_year=r["fiscal_year"],
     )
-    return {"report_id": report_id, "status": "reparsed"}
+    return ReportProcessingOut(report_id=report_id, status="reparsed")
 
 
 @router.delete("/reports/{report_id}", status_code=204)

@@ -4,12 +4,12 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/useAuth"
 import { useReanalyzing } from "@/contexts/ReanalyzingContext"
 import { Plus, TrendingUp, TrendingDown, Minus, MoreVertical, RefreshCw, Trash2, Loader2 } from "lucide-react"
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
+import { api } from "@/lib/api"
 import type { MoatVerdict, ValuationResults } from "@/types"
 
 // Shape returned by GET /companies (list endpoint)
@@ -27,8 +27,6 @@ interface CompanyListItem {
     valuation_results: ValuationResults[]
   }[]
 }
-
-const API_URL = import.meta.env.VITE_API_URL as string
 
 function moatVariant(verdict: MoatVerdict) {
   if (verdict === "wide") return "wide"
@@ -51,44 +49,28 @@ function ValuationIndicator({ base, price }: { base: number; price: number }) {
 }
 
 export function DashboardPage() {
-  const { session } = useAuth()
   const queryClient = useQueryClient()
   const { isReanalyzing, startReanalyzing, stopReanalyzing } = useReanalyzing()
 
   const { data: companies, isLoading } = useQuery<CompanyListItem[]>({
     queryKey: ["companies"],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/companies`, {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-      })
-      if (!res.ok) throw new Error("Failed to fetch companies")
-      return res.json() as Promise<CompanyListItem[]>
-    },
-    enabled: !!session,
+    queryFn: () => api.get<CompanyListItem[]>("/companies"),
   })
 
   const handleDelete = async (company: CompanyListItem) => {
-    await fetch(`${API_URL}/companies/${company.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    })
+    await api.del(`/companies/${company.id}`)
     queryClient.invalidateQueries({ queryKey: ["companies"] })
   }
 
   const handleReanalyze = (company: CompanyListItem) => {
     startReanalyzing(company.id)
-    fetch(`${API_URL}/companies/${company.id}/analyze`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    }).then(res => {
-      if (res.ok) {
+    api.post(`/companies/${company.id}/analyze`)
+      .then(() => {
         toast.success(`${company.ticker} analysis complete`)
         queryClient.invalidateQueries({ queryKey: ["companies"] })
         queryClient.invalidateQueries({ queryKey: ["company", company.id] })
-      } else {
-        toast.error(`Failed to re-analyze ${company.ticker}`)
-      }
-    }).catch(() => toast.error(`Failed to re-analyze ${company.ticker}`))
+      })
+      .catch(() => toast.error(`Failed to re-analyze ${company.ticker}`))
       .finally(() => stopReanalyzing(company.id))
 
     toast.info(`Re-analysis started for ${company.name}`)

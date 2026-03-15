@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
 from app.dependencies import get_current_user_id
 from app.services.supabase_client import get_client
+from app.schemas import MeOut
 
 router = APIRouter()
 
 
-@router.get("/me")
+@router.get("/me", response_model=MeOut)
 async def get_me(user_id: str = Depends(get_current_user_id)):
     """Return basic info about the authenticated user. Useful for agents to verify a token."""
     result = (

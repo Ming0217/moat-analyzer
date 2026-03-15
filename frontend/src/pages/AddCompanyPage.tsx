@@ -9,11 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/useAuth"
+import { api } from "@/lib/api"
 import {
   Upload, FileText, X, CheckCircle2, AlertCircle, Loader2, ChevronRight, Building2
 } from "lucide-react"
-
-const API_URL = import.meta.env.VITE_API_URL as string
 
 const SECTORS = [
   "Technology", "Healthcare", "Financial Services", "Consumer Staples",
@@ -146,7 +145,6 @@ function Step1({
 }: {
   onNext: (companyId: string) => void
 }) {
-  const { session } = useAuth()
   const [name, setName] = useState("")
   const [ticker, setTicker] = useState("")
   const [sector, setSector] = useState("")
@@ -158,16 +156,11 @@ function Step1({
     setError(null)
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/companies`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ name, ticker: ticker.toUpperCase(), sector }),
+      const company = await api.post<{ id: string }>("/companies", {
+        name,
+        ticker: ticker.toUpperCase(),
+        sector,
       })
-      if (!res.ok) throw new Error("Failed to create company")
-      const company = await res.json() as { id: string }
       onNext(company.id)
     } catch {
       setError("Failed to create company. Please try again.")
@@ -327,7 +320,7 @@ function Step2({
   companyId: string
   onDone: () => void
 }) {
-  const { session, user } = useAuth()
+  const { user } = useAuth()
   const [files, setFiles] = useState<FileEntry[]>([])
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -384,25 +377,13 @@ function Step2({
         if (uploadError) throw new Error(uploadError.message)
 
         // 2. Notify backend to parse the file
-        const res = await fetch(`${API_URL}/companies/${companyId}/reports`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            company_id: companyId,
-            report_type: entry.reportType,
-            fiscal_year: entry.fiscalYear,
-            fiscal_quarter: entry.fiscalQuarter,
-            storage_path: storagePath,
-          }),
+        await api.post(`/companies/${companyId}/reports`, {
+          company_id: companyId,
+          report_type: entry.reportType,
+          fiscal_year: entry.fiscalYear,
+          fiscal_quarter: entry.fiscalQuarter,
+          storage_path: storagePath,
         })
-
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({})) as { detail?: string }
-          throw new Error(body.detail ?? "Backend failed to process file")
-        }
 
         setFiles((prev) => prev.map((f) => f.id === entry.id ? { ...f, status: "done" } : f))
       } catch (err) {

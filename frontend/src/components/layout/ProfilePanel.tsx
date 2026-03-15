@@ -2,22 +2,13 @@ import { useState, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
-import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Plus, Trash2, Copy, Check, BookOpen, LogOut, AlertCircle, KeyRound,
 } from "lucide-react"
 import { toast } from "sonner"
-
-const API_URL = import.meta.env.VITE_API_URL as string
-
-// Always read the freshest token from the Supabase client at request time,
-// never capture it from React state (which can be stale between renders).
-async function freshAuthHeader(): Promise<Record<string, string>> {
-  const { data: { session } } = await supabase.auth.getSession()
-  return { Authorization: `Bearer ${session?.access_token ?? ""}` }
-}
+import { api } from "@/lib/api"
 
 type Scope = "read" | "write" | "admin"
 
@@ -94,22 +85,13 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
 
   const { data: tokens = [], isLoading } = useQuery<TokenRow[]>({
     queryKey: ["tokens"],
-    queryFn: async () => {
-      const h = await freshAuthHeader()
-      return fetch(`${API_URL}/tokens`, { headers: h }).then(r => r.json())
-    },
+    queryFn: () => api.get<TokenRow[]>("/tokens"),
     enabled: !!session,
   })
 
   const createMutation = useMutation({
-    mutationFn: async ({ name, scope }: { name: string; scope: Scope }) => {
-      const h = await freshAuthHeader()
-      return fetch(`${API_URL}/tokens`, {
-        method: "POST",
-        headers: { ...h, "Content-Type": "application/json" },
-        body: JSON.stringify({ name, scope }),
-      }).then(r => r.json() as Promise<CreatedToken>)
-    },
+    mutationFn: ({ name, scope }: { name: string; scope: Scope }) =>
+      api.post<CreatedToken>("/tokens", { name, scope }),
     onSuccess: (data) => {
       setRevealed(data)
       setNewName("")
@@ -120,10 +102,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
   })
 
   const revokeMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const h = await freshAuthHeader()
-      return fetch(`${API_URL}/tokens/${id}`, { method: "DELETE", headers: h })
-    },
+    mutationFn: (id: string) => api.del(`/tokens/${id}`),
     onSuccess: () => {
       setConfirmId(null)
       void queryClient.invalidateQueries({ queryKey: ["tokens"] })

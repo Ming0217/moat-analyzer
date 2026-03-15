@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_current_user_id, require_write
 from app.services.supabase_client import get_client
 from app.services.llm import run_analysis
+from app.schemas import AnalysisTriggerOut, AnalysisFullOut
 
 router = APIRouter()
 
 
-@router.post("/companies/{company_id}/analyze", status_code=202)
+@router.post("/companies/{company_id}/analyze", status_code=202, response_model=AnalysisTriggerOut)
 async def trigger_analysis(
     company_id: str,
     user_id: str = Depends(require_write),
@@ -61,7 +62,7 @@ async def trigger_analysis(
     return {"analysis_id": analysis_id, "status": "complete"}
 
 
-@router.get("/companies/{company_id}/analyses")
+@router.get("/companies/{company_id}/analyses", response_model=list[AnalysisFullOut])
 async def list_analyses(
     company_id: str,
     user_id: str = Depends(get_current_user_id),

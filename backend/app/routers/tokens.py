@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.dependencies import get_current_user_id, require_admin
 from app.services.supabase_client import get_client
+from app.schemas import TokenOut, TokenCreatedOut
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ class TokenCreate(BaseModel):
     scope: Literal["read", "write", "admin"] = "read"
 
 
-@router.get("/tokens")
+@router.get("/tokens", response_model=list[TokenOut])
 async def list_tokens(user_id: str = Depends(get_current_user_id)):
     """List all PATs for the current user (never returns the raw token)."""
     result = (
@@ -35,7 +36,7 @@ async def list_tokens(user_id: str = Depends(get_current_user_id)):
     return result.data
 
 
-@router.post("/tokens", status_code=201)
+@router.post("/tokens", status_code=201, response_model=TokenCreatedOut)
 async def create_token(
     payload: TokenCreate,
     user_id: str = Depends(get_current_user_id),

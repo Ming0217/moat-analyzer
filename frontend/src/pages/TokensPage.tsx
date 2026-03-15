@@ -4,12 +4,10 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/hooks/useAuth"
 import { Link } from "react-router-dom"
 import { ArrowLeft, Plus, Trash2, Copy, Check, KeyRound, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
-
-const API_URL = import.meta.env.VITE_API_URL as string
+import { api } from "@/lib/api"
 
 interface TokenRow {
   id: string
@@ -43,27 +41,18 @@ function CopyButton({ value }: { value: string }) {
 }
 
 export function TokensPage() {
-  const { session } = useAuth()
   const queryClient = useQueryClient()
   const [newName, setNewName] = useState("")
   const [revealed, setRevealed] = useState<CreatedToken | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
-  const headers = { Authorization: `Bearer ${session?.access_token}` }
-
   const { data: tokens = [], isLoading } = useQuery<TokenRow[]>({
     queryKey: ["tokens"],
-    queryFn: () => fetch(`${API_URL}/tokens`, { headers }).then(r => r.json()),
-    enabled: !!session,
+    queryFn: () => api.get<TokenRow[]>("/tokens"),
   })
 
   const createMutation = useMutation({
-    mutationFn: (name: string) =>
-      fetch(`${API_URL}/tokens`, {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      }).then(r => r.json() as Promise<CreatedToken>),
+    mutationFn: (name: string) => api.post<CreatedToken>("/tokens", { name }),
     onSuccess: (data) => {
       setRevealed(data)
       setNewName("")
@@ -73,8 +62,7 @@ export function TokensPage() {
   })
 
   const revokeMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetch(`${API_URL}/tokens/${id}`, { method: "DELETE", headers }),
+    mutationFn: (id: string) => api.del(`/tokens/${id}`),
     onSuccess: () => {
       setConfirmId(null)
       void queryClient.invalidateQueries({ queryKey: ["tokens"] })
