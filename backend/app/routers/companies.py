@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.dependencies import get_current_user_id, require_write, require_admin
 from app.services.supabase_client import get_client
-from app.schemas import CompanyOut, CompanyListItemOut, CompanyDetailOut
+from app.schemas import CompanyOut
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ class CompanyCreate(BaseModel):
     sector: str
 
 
-@router.get("", response_model=list[CompanyListItemOut])
+@router.get("")
 async def list_companies(user_id: str = Depends(get_current_user_id)):
     """Return all companies belonging to the current user."""
     client = get_client()
@@ -47,7 +47,7 @@ async def create_company(
     return result.data[0]
 
 
-@router.get("/{company_id}", response_model=CompanyDetailOut)
+@router.get("/{company_id}")
 async def get_company(
     company_id: str,
     user_id: str = Depends(get_current_user_id),
