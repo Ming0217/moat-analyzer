@@ -15,7 +15,8 @@ venv/
 node_modules/
 frontend/dist/
 
-# Claude Code local config
+# IDE / editor config
+.vscode/
 .claude/
 
 # macOS
