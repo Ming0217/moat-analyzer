@@ -1,6 +1,7 @@
 import { supabase } from "./supabase"
 
 const API_URL = import.meta.env.VITE_API_URL as string
+const DEFAULT_TIMEOUT = 60_000 // 60s — enough for Render cold starts
 
 async function getToken(): Promise<string> {
   const { data } = await supabase.auth.getSession()
@@ -12,20 +13,32 @@ async function request<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = await getToken()
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-  })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? `Request failed: ${res.status}`)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
+
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...options.headers,
+      },
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.detail ?? `Request failed: ${res.status}`)
+    }
+    if (res.status === 204) return undefined as T
+    return res.json() as Promise<T>
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Request timed out — the server may be waking up. Please try again.")
+    }
+    throw err
+  } finally {
+    clearTimeout(timeout)
   }
-  // 204 No Content
-  if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
 }
 
 export const api = {
