@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_current_user_id
 from app.services.supabase_client import get_client
 from app.services.price_fetcher import fetch_price
+from app.schemas import PriceOut
 
 router = APIRouter()
 
 
-@router.get("/companies/{company_id}/price")
+@router.get("/companies/{company_id}/price", response_model=PriceOut)
 async def get_price(
     company_id: str,
     user_id: str = Depends(get_current_user_id),

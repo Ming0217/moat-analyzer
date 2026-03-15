@@ -4,6 +4,7 @@ from app.dependencies import require_write
 from app.services.supabase_client import get_client
 from app.services.dcf_calculator import calculate_dcf
 from app.services.price_fetcher import fetch_fx_rate
+from app.schemas import DcfResultOut
 
 router = APIRouter()
 
@@ -15,7 +16,7 @@ class DcfParams(BaseModel):
     projection_years: int       # e.g. 10
 
 
-@router.post("/analyses/{analysis_id}/dcf")
+@router.post("/analyses/{analysis_id}/dcf", response_model=DcfResultOut)
 async def recalculate_dcf(
     analysis_id: str,
     params: DcfParams,
