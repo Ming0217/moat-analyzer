@@ -26,6 +26,9 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Force new service worker to activate immediately
+        skipWaiting: true,
+        clientsClaim: true,
         // Pre-cache all static assets (JS, CSS, HTML, fonts, images)
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // API calls: always try network first, fall back to cache for 1 hour
