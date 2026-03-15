@@ -20,7 +20,16 @@ const MethodologyPage = lazy(() => import("@/pages/MethodologyPage").then(m => (
 const TokensPage = lazy(() => import("@/pages/TokensPage").then(m => ({ default: m.TokensPage })))
 const ApiDocsPage = lazy(() => import("@/pages/ApiDocsPage").then(m => ({ default: m.ApiDocsPage })))
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,                    // retry twice on failure (covers cold start timeouts)
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      staleTime: 5 * 60 * 1000,   // 5 min — avoid refetching on every tab switch
+      refetchOnWindowFocus: false, // don't refetch when user switches back to the app
+    },
+  },
+})
 
 function PageLoader() {
   return (
