@@ -2,7 +2,6 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Copy, Check } from "lucide-react"
 
@@ -20,7 +19,7 @@ function CopyButton({ value }: { value: string }) {
   )
 }
 
-function CodeBlock({ code, language = "bash" }: { code: string; language?: string }) {
+function CodeBlock({ code }: { code: string; language?: string }) {
   return (
     <div className="relative">
       <pre className="rounded-md bg-muted px-4 py-3 text-xs font-mono leading-relaxed overflow-x-auto whitespace-pre">
