@@ -6,12 +6,17 @@ catch schema drift at serialization time, and generate OpenAPI docs.
 """
 from datetime import datetime
 from typing import Optional, List, Literal
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+
+class _Base(BaseModel):
+    """Base model that tolerates extra fields from Supabase responses."""
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 # ── Shared / nested models ────────────────────────────────────────────────────
 
-class ValuationResultsOut(BaseModel):
+class ValuationResultsOut(_Base):
     id: str
     analysis_id: str
     share_price: Optional[float] = None
@@ -27,11 +32,8 @@ class ValuationResultsOut(BaseModel):
     dcf_intrinsic_value_bull: Optional[float] = None
     dcf_intrinsic_value_bear: Optional[float] = None
 
-    class Config:
-        from_attributes = True
 
-
-class DcfParametersOut(BaseModel):
+class DcfParametersOut(_Base):
     id: str
     analysis_id: str
     stage1_growth_rate: float
@@ -40,11 +42,8 @@ class DcfParametersOut(BaseModel):
     projection_years: int
     updated_at: Optional[str] = None
 
-    class Config:
-        from_attributes = True
 
-
-class ReportOut(BaseModel):
+class ReportOut(_Base):
     id: str
     company_id: str
     report_type: str
@@ -55,11 +54,8 @@ class ReportOut(BaseModel):
     parse_status: str
     parse_error: Optional[str] = None
 
-    class Config:
-        from_attributes = True
 
-
-class FinancialMetricsOut(BaseModel):
+class FinancialMetricsOut(_Base):
     id: str
     company_id: str
     fiscal_year: int
@@ -81,9 +77,6 @@ class FinancialMetricsOut(BaseModel):
     roic: Optional[float] = None
     fcf_margin: Optional[float] = None
 
-    class Config:
-        from_attributes = True
-
 
 # ── Analysis models ───────────────────────────────────────────────────────────
 
@@ -91,7 +84,7 @@ MoatVerdict = Literal["wide", "narrow", "none"]
 DriverRating = Literal["strong", "moderate", "weak"]
 
 
-class AnalysisSummaryOut(BaseModel):
+class AnalysisSummaryOut(_Base):
     """Nested in company list — lightweight."""
     id: str
     moat_verdict: MoatVerdict
@@ -99,11 +92,8 @@ class AnalysisSummaryOut(BaseModel):
     created_at: str
     valuation_results: List[ValuationResultsOut] = []
 
-    class Config:
-        from_attributes = True
 
-
-class AnalysisFullOut(BaseModel):
+class AnalysisFullOut(_Base):
     """Full analysis with all fields — used in company detail."""
     id: str
     created_at: str
@@ -126,13 +116,10 @@ class AnalysisFullOut(BaseModel):
     valuation_results: List[ValuationResultsOut] = []
     dcf_parameters: List[DcfParametersOut] = []
 
-    class Config:
-        from_attributes = True
-
 
 # ── Company models ────────────────────────────────────────────────────────────
 
-class CompanyOut(BaseModel):
+class CompanyOut(_Base):
     """Base company fields."""
     id: str
     user_id: str
@@ -140,9 +127,6 @@ class CompanyOut(BaseModel):
     ticker: str
     sector: str
     created_at: str
-
-    class Config:
-        from_attributes = True
 
 
 class CompanyListItemOut(CompanyOut):
@@ -159,27 +143,27 @@ class CompanyDetailOut(CompanyOut):
 
 # ── Simple response models ────────────────────────────────────────────────────
 
-class AnalysisTriggerOut(BaseModel):
+class AnalysisTriggerOut(_Base):
     analysis_id: str
     status: str
 
 
-class ReportProcessingOut(BaseModel):
+class ReportProcessingOut(_Base):
     report_id: str
     status: str
 
 
-class PriceOut(BaseModel):
+class PriceOut(_Base):
     ticker: str
     price: float
 
 
-class MeOut(BaseModel):
+class MeOut(_Base):
     user_id: str
     companies_count: int
 
 
-class TokenOut(BaseModel):
+class TokenOut(_Base):
     id: str
     name: str
     prefix: str
@@ -187,16 +171,13 @@ class TokenOut(BaseModel):
     created_at: str
     last_used_at: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class TokenCreatedOut(TokenOut):
     """Returned only on creation — includes the raw token."""
     token: str
 
 
-class DcfResultOut(BaseModel):
+class DcfResultOut(_Base):
     intrinsic_value_total: float
     intrinsic_value_per_share: Optional[float] = None
     pv_stage1: float
