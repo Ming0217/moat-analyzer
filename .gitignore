@@ -1,0 +1,33 @@
+# Environment files — never commit real credentials
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Claude Code local config
+.claude/
+
+# macOS
+.DS_Store
+
+# Large local data files — not needed in repo
+the_little_book_that_builds_wealth.txt
+books/
+
+# Local planning/design docs
+DESIGN.md
+PROJECT_STRUCTURE.md
+
+# SQL migration files — run manually in Supabase dashboard
+*.sql
