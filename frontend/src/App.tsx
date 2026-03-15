@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { DashboardPage } from "@/pages/DashboardPage"
+import { LandingPage } from "@/pages/LandingPage"
 
 // Lazy loaded — only fetched when the route is visited
 const CompanyPage = lazy(() => import("@/pages/CompanyPage").then(m => ({ default: m.CompanyPage })))
@@ -38,6 +39,7 @@ export default function App() {
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -47,7 +49,7 @@ export default function App() {
               <Route path="/methodology" element={<ProtectedRoute><MethodologyPage /></ProtectedRoute>} />
               <Route path="/settings/tokens" element={<ProtectedRoute><TokensPage /></ProtectedRoute>} />
               <Route path="/api-docs" element={<ProtectedRoute><ApiDocsPage /></ProtectedRoute>} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </BrowserRouter>
