@@ -55,9 +55,9 @@ export default function App() {
               <Route path="/company/new" element={<ProtectedRoute><AddCompanyPage /></ProtectedRoute>} />
               <Route path="/company/:id/upload" element={<ProtectedRoute><AddCompanyPage /></ProtectedRoute>} />
               <Route path="/company/:id" element={<ProtectedRoute><CompanyPage /></ProtectedRoute>} />
-              <Route path="/methodology" element={<ProtectedRoute><MethodologyPage /></ProtectedRoute>} />
+              <Route path="/methodology" element={<MethodologyPage />} />
               <Route path="/settings/tokens" element={<ProtectedRoute><TokensPage /></ProtectedRoute>} />
-              <Route path="/api-docs" element={<ProtectedRoute><ApiDocsPage /></ProtectedRoute>} />
+              <Route path="/api-docs" element={<ApiDocsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart2 } from "lucide-react"
+import { CastleIcon } from "@/components/icons/CastleIcon"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -30,10 +30,10 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2">
-          <BarChart2 className="h-8 w-8 text-primary" />
+        <Link to="/" className="mb-8 flex flex-col items-center gap-2 hover:opacity-80 transition-opacity">
+          <CastleIcon className="h-10 w-10" />
           <h1 className="text-2xl font-bold">MoatAnalyzer</h1>
-        </div>
+        </Link>
         <Card>
           <CardHeader>
             <CardTitle>Sign in</CardTitle>
