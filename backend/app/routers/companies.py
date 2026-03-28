@@ -73,7 +73,7 @@ async def get_company(
 @router.delete("/{company_id}", status_code=204)
 async def delete_company(
     company_id: str,
-    user_id: str = Depends(require_admin),
+    user_id: str = Depends(get_current_user_id),
 ):
     client = get_client()
     client.table("companies").delete().eq("id", company_id).eq("user_id", user_id).execute()
